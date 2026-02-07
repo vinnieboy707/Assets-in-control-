@@ -3,11 +3,12 @@ const router = express.Router();
 const db = require('../database');
 const auth = require('../auth');
 const { v4: uuidv4 } = require('uuid');
+const { authLimiter } = require('../rateLimiter');
 
 /**
  * Register new user
  */
-router.post('/register', async (req, res) => {
+router.post('/register', authLimiter, async (req, res) => {
   try {
     const { email, password, name } = req.body;
 
@@ -76,7 +77,7 @@ router.post('/register', async (req, res) => {
 /**
  * Login user
  */
-router.post('/login', async (req, res) => {
+router.post('/login', authLimiter, async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -192,7 +193,7 @@ router.put('/profile', auth.authenticateToken, async (req, res) => {
 /**
  * Change password
  */
-router.put('/password', auth.authenticateToken, async (req, res) => {
+router.put('/password', authLimiter, auth.authenticateToken, async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
 

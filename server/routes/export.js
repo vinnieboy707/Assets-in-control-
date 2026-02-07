@@ -2,12 +2,13 @@ const express = require('express');
 const router = express.Router();
 const db = require('../database');
 const { optionalAuth } = require('../auth');
+const { exportLimiter } = require('../rateLimiter');
 
 /**
  * Export transactions as CSV
  * GET /api/export/transactions/csv?walletId=xxx
  */
-router.get('/transactions/csv', optionalAuth, async (req, res) => {
+router.get('/transactions/csv', exportLimiter, optionalAuth, async (req, res) => {
   try {
     const { walletId, startDate, endDate } = req.query;
     const userId = req.user ? req.user.userId : null;
@@ -85,7 +86,7 @@ router.get('/transactions/csv', optionalAuth, async (req, res) => {
  * Export transactions as JSON
  * GET /api/export/transactions/json?walletId=xxx
  */
-router.get('/transactions/json', optionalAuth, async (req, res) => {
+router.get('/transactions/json', exportLimiter, optionalAuth, async (req, res) => {
   try {
     const { walletId, startDate, endDate } = req.query;
     const userId = req.user ? req.user.userId : null;
@@ -141,7 +142,7 @@ router.get('/transactions/json', optionalAuth, async (req, res) => {
  * Export wallet data
  * GET /api/export/wallets/json
  */
-router.get('/wallets/json', optionalAuth, async (req, res) => {
+router.get('/wallets/json', exportLimiter, optionalAuth, async (req, res) => {
   try {
     const userId = req.user ? req.user.userId : null;
 
@@ -177,7 +178,7 @@ router.get('/wallets/json', optionalAuth, async (req, res) => {
  * Export staking data
  * GET /api/export/staking/json
  */
-router.get('/staking/json', optionalAuth, async (req, res) => {
+router.get('/staking/json', exportLimiter, optionalAuth, async (req, res) => {
   try {
     const userId = req.user ? req.user.userId : null;
 
