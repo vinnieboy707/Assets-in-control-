@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { transactionAPI, walletAPI, stakingAPI } from '../services/api';
+import SearchFilter from './SearchFilter';
+import notificationService from '../services/notificationService';
 
 function TransactionsPanel() {
   const [transactions, setTransactions] = useState([]);
+  const [filteredTransactions, setFilteredTransactions] = useState([]);
   const [wallets, setWallets] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [transactionType, setTransactionType] = useState('');
@@ -16,6 +19,8 @@ function TransactionsPanel() {
 
   useEffect(() => {
     loadData();
+    // Request notification permission
+    notificationService.requestPermission();
   }, []);
 
   const loadData = async () => {
@@ -25,10 +30,66 @@ function TransactionsPanel() {
         walletAPI.getAll()
       ]);
       setTransactions(transRes.data.transactions);
+      setFilteredTransactions(transRes.data.transactions);
       setWallets(walletRes.data.wallets);
     } catch (err) {
       console.error('Failed to load data', err);
     }
+  };
+
+  const handleFilterChange = (filters) => {
+    let filtered = [...transactions];
+
+    // Apply search filter
+    if (filters.search) {
+      const searchLower = filters.search.toLowerCase();
+      filtered = filtered.filter(tx => 
+        tx.type.toLowerCase().includes(searchLower) ||
+        tx.cryptocurrency.toLowerCase().includes(searchLower) ||
+        tx.status.toLowerCase().includes(searchLower) ||
+        (tx.wallet_name && tx.wallet_name.toLowerCase().includes(searchLower))
+      );
+    }
+
+    // Apply type filter
+    if (filters.type) {
+      filtered = filtered.filter(tx => tx.type === filters.type);
+    }
+
+    // Apply status filter
+    if (filters.status) {
+      filtered = filtered.filter(tx => tx.status === filters.status);
+    }
+
+    // Apply cryptocurrency filter
+    if (filters.cryptocurrency) {
+      filtered = filtered.filter(tx => tx.cryptocurrency === filters.cryptocurrency);
+    }
+
+    // Apply date range filters
+    if (filters.startDate) {
+      filtered = filtered.filter(tx => new Date(tx.created_at) >= new Date(filters.startDate));
+    }
+    if (filters.endDate) {
+      filtered = filtered.filter(tx => new Date(tx.created_at) <= new Date(filters.endDate));
+    }
+
+    // Apply amount range filters
+    if (filters.minAmount) {
+      filtered = filtered.filter(tx => parseFloat(tx.amount) >= parseFloat(filters.minAmount));
+    }
+    if (filters.maxAmount) {
+      filtered = filtered.filter(tx => parseFloat(tx.amount) <= parseFloat(filters.maxAmount));
+    }
+
+    setFilteredTransactions(filtered);
+  };
+
+  const handleExport = (format) => {
+    const walletId = formData.wallet_id || '';
+    const url = `/api/export/transactions/${format}${walletId ? `?walletId=${walletId}` : ''}`;
+    window.open(url, '_blank');
+    showCelebration(`Exporting transactions as ${format.toUpperCase()}...`);
   };
 
   const handleOpenModal = (type) => {
@@ -40,14 +101,15 @@ function TransactionsPanel() {
     e.preventDefault();
     
     try {
+      let result;
       if (transactionType === 'withdraw') {
-        await transactionAPI.withdraw(formData);
+        result = await transactionAPI.withdraw(formData);
       } else if (transactionType === 'trade') {
-        await transactionAPI.trade(formData);
+        result = await transactionAPI.trade(formData);
       } else if (transactionType === 'deposit') {
-        await transactionAPI.deposit(formData);
+        result = await transactionAPI.deposit(formData);
       } else if (transactionType === 'stake') {
-        await stakingAPI.stake({ 
+        result = await stakingAPI.stake({ 
           ...formData, 
           apy: parseFloat(formData.apy),
           lock_period_days: parseInt(formData.lock_period_days)
@@ -64,6 +126,14 @@ function TransactionsPanel() {
       });
       loadData();
       showCelebration('Transaction submitted successfully! 🎉');
+      
+      // Send notification
+      notificationService.notifyTransaction(transactionType, {
+        type: transactionType,
+        amount: formData.amount,
+        cryptocurrency: formData.cryptocurrency,
+        status: 'pending'
+      });
     } catch (err) {
       alert('Transaction failed: ' + (err.response?.data?.error || err.message));
     }
@@ -100,7 +170,7 @@ function TransactionsPanel() {
     <div>
       <div className="card" style={{'--index': 0}}>
         <h2>⚡ Quick Actions</h2>
-        <div>
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
           <button className="button" onClick={() => handleOpenModal('stake')}>
             Stake Assets
           </button>
@@ -113,44 +183,61 @@ function TransactionsPanel() {
           <button className="button" onClick={() => handleOpenModal('deposit')}>
             Deposit
           </button>
+          <button className="button secondary" onClick={() => handleExport('csv')}>
+            📥 Export CSV
+          </button>
+          <button className="button secondary" onClick={() => handleExport('json')}>
+            📥 Export JSON
+          </button>
         </div>
       </div>
 
       <div className="card">
         <h2>Recent Transactions</h2>
-        {transactions.length === 0 ? (
+        
+        <SearchFilter 
+          onFilterChange={handleFilterChange}
+          filterType="transactions"
+        />
+
+        {filteredTransactions.length === 0 ? (
           <div className="empty-state">
-            <p>No transactions yet</p>
+            <p>{transactions.length === 0 ? 'No transactions yet' : 'No transactions match your filters'}</p>
           </div>
         ) : (
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Type</th>
-                <th>Wallet</th>
-                <th>Cryptocurrency</th>
-                <th>Amount</th>
-                <th>Status</th>
-                <th>Date</th>
-              </tr>
-            </thead>
-            <tbody>
-              {transactions.map((transaction) => (
-                <tr key={transaction.id}>
-                  <td style={{ textTransform: 'capitalize' }}>{transaction.type}</td>
-                  <td>{transaction.wallet_name}</td>
-                  <td>{transaction.cryptocurrency}</td>
-                  <td>{transaction.amount}</td>
-                  <td>
-                    <span className={`badge ${transaction.status === 'completed' ? 'active' : ''}`}>
-                      {transaction.status}
-                    </span>
-                  </td>
-                  <td>{new Date(transaction.created_at).toLocaleString()}</td>
+          <>
+            <div style={{ marginBottom: '10px', color: 'var(--text-secondary)' }}>
+              Showing {filteredTransactions.length} of {transactions.length} transactions
+            </div>
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>Type</th>
+                  <th>Wallet</th>
+                  <th>Cryptocurrency</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                  <th>Date</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {filteredTransactions.map((transaction) => (
+                  <tr key={transaction.id}>
+                    <td style={{ textTransform: 'capitalize' }}>{transaction.type}</td>
+                    <td>{transaction.wallet_name}</td>
+                    <td>{transaction.cryptocurrency}</td>
+                    <td>{transaction.amount}</td>
+                    <td>
+                      <span className={`badge ${transaction.status === 'completed' ? 'active' : ''}`}>
+                        {transaction.status}
+                      </span>
+                    </td>
+                    <td>{new Date(transaction.created_at).toLocaleString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </>
         )}
       </div>
 
