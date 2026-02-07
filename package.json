@@ -9,7 +9,9 @@
     "server": "nodemon server/index.js",
     "client": "cd client && npm start",
     "build": "cd client && npm run build",
-    "install-all": "npm install && cd client && npm install"
+    "install-all": "npm install && cd client && npm install --legacy-peer-deps",
+    "deploy": "bash deploy.sh",
+    "quick-start": "bash quick-start.sh"
   },
   "keywords": [
     "cryptocurrency",
@@ -20,6 +22,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "axios": "^1.13.4",
     "bcryptjs": "^3.0.3",
     "body-parser": "^1.20.2",
     "cookie-parser": "^1.4.7",

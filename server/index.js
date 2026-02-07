@@ -31,6 +31,7 @@ const airdropRoutes = require('./routes/airdrops');
 const authRoutes = require('./routes/auth');
 const priceRoutes = require('./routes/prices');
 const exportRoutes = require('./routes/export');
+const verificationRoutes = require('./routes/verification');
 
 app.use('/api/wallets', walletRoutes);
 app.use('/api/staking', stakingRoutes);
@@ -39,6 +40,7 @@ app.use('/api/airdrops', airdropRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/prices', priceRoutes);
 app.use('/api/export', exportRoutes);
+app.use('/api/verification', verificationRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
