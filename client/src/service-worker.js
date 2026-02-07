@@ -9,7 +9,7 @@
 import { clientsClaim } from 'workbox-core';
 import { precacheAndRoute, createHandlerBoundToURL } from 'workbox-precaching';
 import { registerRoute } from 'workbox-routing';
-import { StaleWhileRevalidate, CacheFirst, NetworkFirst } from 'workbox-strategies';
+import { CacheFirst, NetworkFirst } from 'workbox-strategies';
 import { ExpirationPlugin } from 'workbox-expiration';
 
 clientsClaim();
@@ -80,8 +80,8 @@ self.addEventListener('message', (event) => {
 self.addEventListener('push', (event) => {
   const options = {
     body: event.data ? event.data.text() : 'New notification',
-    icon: '/logo192.png',
-    badge: '/logo192.png',
+    icon: '/favicon.ico',
+    badge: '/favicon.ico',
     vibrate: [200, 100, 200],
   };
 

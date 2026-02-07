@@ -27,7 +27,10 @@ function App() {
   const fetchWallets = async () => {
     try {
       const response = await axios.get('/api/wallets');
-      setWallets(response.data);
+      const walletsData = response.data && Array.isArray(response.data.wallets)
+        ? response.data.wallets
+        : [];
+      setWallets(walletsData);
     } catch (error) {
       console.error('Error fetching wallets:', error);
     }
@@ -36,7 +39,10 @@ function App() {
   const fetchStakingData = async () => {
     try {
       const response = await axios.get('/api/staking');
-      setStakingData(response.data);
+      const stakedAssets = Array.isArray(response.data?.staked_assets)
+        ? response.data.staked_assets
+        : [];
+      setStakingData(stakedAssets);
     } catch (error) {
       console.error('Error fetching staking data:', error);
     }

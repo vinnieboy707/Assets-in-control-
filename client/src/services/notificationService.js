@@ -56,8 +56,8 @@ class NotificationService {
     }
 
     const defaultOptions = {
-      icon: '/logo192.png',
-      badge: '/logo192.png',
+      icon: '/favicon.ico',
+      badge: '/favicon.ico',
       vibrate: [200, 100, 200],
       requireInteraction: false,
       ...options
@@ -92,7 +92,7 @@ class NotificationService {
 
     return this.showNotification(title, {
       body,
-      tag: `transaction-${transaction.id}`,
+      tag: transaction.id ? `transaction-${transaction.id}` : undefined,
       data: transaction
     });
   }

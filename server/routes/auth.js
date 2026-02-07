@@ -217,6 +217,11 @@ router.put('/password', authLimiter, auth.authenticateToken, async (req, res) =>
       );
     });
 
+    // Check if user exists
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
     // Verify current password
     const isValidPassword = await auth.comparePassword(currentPassword, user.password);
     if (!isValidPassword) {

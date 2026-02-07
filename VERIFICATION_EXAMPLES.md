@@ -115,7 +115,7 @@ curl http://localhost:5000/api/verification/balance/ethereum/0xd8dA6BF26964aF9D7
 
 **Historical Balance Example:**
 ```bash
-curl "http://localhost:5000/api/verification/balance/ethereum/0xd8dA.../balance?blockNumber=19000000"
+curl "http://localhost:5000/api/verification/balance/ethereum/0xd8dA...?blockNumber=19000000"
 ```
 
 This retrieves the balance at a specific block in the past, allowing historical verification.
@@ -161,7 +161,7 @@ GET /api/verification/history/:chain/:address?fromBlock=19000000&toBlock=1910000
 
 **Example:**
 ```bash
-curl "http://localhost:5000/api/verification/history/ethereum/0xA0b8.../history?fromBlock=19000000"
+curl "http://localhost:5000/api/verification/history/ethereum/0xA0b8...?fromBlock=19000000"
 ```
 
 **Response:**

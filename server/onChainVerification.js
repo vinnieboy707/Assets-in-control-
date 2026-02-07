@@ -66,7 +66,7 @@ async function verifyTransaction(txHash, provider) {
 
     const block = await provider.getBlock(receipt.blockNumber);
     const currentBlock = await provider.getBlockNumber();
-    const confirmations = currentBlock - receipt.blockNumber;
+    const confirmations = currentBlock - receipt.blockNumber + 1; // +1 so a mined tx has at least 1 confirmation
 
     return {
       verified: true,

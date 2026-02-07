@@ -101,15 +101,14 @@ function TransactionsPanel() {
     e.preventDefault();
     
     try {
-      let result;
       if (transactionType === 'withdraw') {
-        result = await transactionAPI.withdraw(formData);
+        await transactionAPI.withdraw(formData);
       } else if (transactionType === 'trade') {
-        result = await transactionAPI.trade(formData);
+        await transactionAPI.trade(formData);
       } else if (transactionType === 'deposit') {
-        result = await transactionAPI.deposit(formData);
+        await transactionAPI.deposit(formData);
       } else if (transactionType === 'stake') {
-        result = await stakingAPI.stake({ 
+        await stakingAPI.stake({ 
           ...formData, 
           apy: parseFloat(formData.apy),
           lock_period_days: parseInt(formData.lock_period_days)
@@ -133,6 +132,7 @@ function TransactionsPanel() {
         amount: formData.amount,
         cryptocurrency: formData.cryptocurrency,
         status: 'pending'
+        // Note: id will be undefined, so notificationService should handle missing id
       });
     } catch (err) {
       alert('Transaction failed: ' + (err.response?.data?.error || err.message));

@@ -51,7 +51,17 @@ router.get('/address/:chain/:address', apiLimiter, (req, res) => {
 router.get('/verify-transaction/:chain/:txHash', apiLimiter, async (req, res) => {
   try {
     const { chain, txHash } = req.params;
-    const provider = blockchain.getProvider ? blockchain.getProvider(chain) : null;
+    
+    let provider;
+    try {
+      provider = blockchain.getProvider ? blockchain.getProvider(chain) : null;
+    } catch (error) {
+      // getProvider throws for unsupported chains
+      return res.status(400).json({ 
+        verified: false,
+        error: `Unsupported chain: ${chain}` 
+      });
+    }
     
     if (!provider) {
       return res.status(400).json({ error: 'Provider not available for this chain' });
@@ -81,7 +91,19 @@ router.get('/verify-transaction/:chain/:txHash', apiLimiter, async (req, res) =>
 router.get('/balance/:chain/:address', apiLimiter, async (req, res) => {
   try {
     const { chain, address } = req.params;
-    const blockNumber = req.query.blockNumber ? parseInt(req.query.blockNumber) : null;
+    
+    // Validate and parse blockNumber if provided
+    let blockNumber = null;
+    if (req.query.blockNumber) {
+      const parsed = parseInt(req.query.blockNumber);
+      if (isNaN(parsed) || parsed < 0) {
+        return res.status(400).json({ 
+          verified: false,
+          error: 'Invalid blockNumber parameter. Must be a non-negative integer.' 
+        });
+      }
+      blockNumber = parsed;
+    }
     
     const provider = blockchain.getProvider ? blockchain.getProvider(chain) : null;
     
@@ -144,7 +166,19 @@ router.get('/history/:chain/:address', apiLimiter, async (req, res) => {
   try {
     const { chain, address } = req.params;
     const fromBlock = req.query.fromBlock ? parseInt(req.query.fromBlock) : 0;
-    const toBlock = req.query.toBlock || 'latest';
+    
+    // Validate and parse toBlock
+    let toBlock = 'latest';
+    if (req.query.toBlock && req.query.toBlock !== 'latest') {
+      const parsed = parseInt(req.query.toBlock);
+      if (isNaN(parsed) || parsed < 0) {
+        return res.status(400).json({ 
+          success: false,
+          error: 'Invalid toBlock parameter. Must be a non-negative integer or "latest".' 
+        });
+      }
+      toBlock = parsed;
+    }
     
     const provider = blockchain.getProvider ? blockchain.getProvider(chain) : null;
     
