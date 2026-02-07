@@ -2,7 +2,21 @@
 
 A full-stack cryptocurrency wallet management application that allows you to connect all your different wallets, manage staked cryptocurrencies, and perform transactions like withdrawals, trades, and deposits - all from a unified dashboard.
 
+**🎯 100% Automated Deployment** | **✅ On-Chain Verifiable** | **🔒 Production Ready**
+
 ![Wallet View](https://github.com/user-attachments/assets/25fa1db6-14da-425d-9ff3-14bb88a3d6ca)
+
+## 🚀 Quick Start
+
+Deploy in one command:
+
+```bash
+./quick-start.sh
+```
+
+That's it! The application will be running at `http://localhost:5000`
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for all deployment options (Docker, PM2, systemd).
 
 ## Features
 
@@ -11,6 +25,7 @@ A full-stack cryptocurrency wallet management application that allows you to con
 - Support for Ethereum, Bitcoin, Binance Smart Chain, Polygon, Solana, and Cardano
 - Verify wallet connections
 - View wallet balances in real-time
+- **NEW: On-chain balance verification** ⭐
 
 ![Add Wallet Modal](https://github.com/user-attachments/assets/07485129-8f85-45ac-8e54-cc65432ab352)
 
@@ -29,22 +44,43 @@ A full-stack cryptocurrency wallet management application that allows you to con
 - Trade crypto for cash
 - Deposit to external accounts
 - View transaction history with status tracking
+- **NEW: On-chain transaction verification** ⭐
 
 ![Transactions View](https://github.com/user-attachments/assets/5181208b-9fee-4c72-8e60-3d8b495ed8f7)
+
+✅ **On-Chain Verification** ⭐ **NEW**
+- Verify all transactions on block explorers
+- Get transaction receipts with confirmations
+- Verify balances at any block height
+- Verify smart contracts
+- Get transaction history from blockchain events
+- Direct links to Etherscan/Polygonscan/etc.
 
 ✅ **Unified Dashboard**
 - Clean, modern interface
 - Tabbed navigation for easy access
 - Real-time balance updates
 - Responsive design
+- PWA support for mobile
+
+✅ **Advanced Features**
+- User authentication (JWT)
+- Real-time price tracking (CoinGecko)
+- Portfolio analytics with charts
+- Multi-language support (EN, ES, FR)
+- Export transaction history (CSV/JSON)
+- Advanced search and filtering
+- Push notifications
 
 ## Tech Stack
 
 ### Backend
 - **Node.js** with Express.js
 - **SQLite** database for data persistence
+- **Ethers.js** for blockchain integration
 - RESTful API architecture
-- CORS enabled for frontend communication
+- Rate limiting and security
+- On-chain verification system
 
 ### Frontend
 - **React** (v19.2.4)
@@ -58,7 +94,26 @@ A full-stack cryptocurrency wallet management application that allows you to con
 - Node.js (v14 or higher)
 - npm or yarn
 
-### Setup Instructions
+### Automated Setup (Recommended)
+
+**Option 1: Quick Start** (fastest)
+```bash
+./quick-start.sh
+```
+
+**Option 2: Full Deployment**
+```bash
+./deploy.sh
+```
+
+**Option 3: Docker**
+```bash
+docker-compose up -d
+```
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for complete deployment guide.
+
+### Manual Setup (if needed)
 
 1. **Clone the repository**
    ```bash
@@ -68,10 +123,73 @@ A full-stack cryptocurrency wallet management application that allows you to con
 
 2. **Install dependencies**
    ```bash
-   # Install root dependencies
-   npm install
+   # Install all dependencies
+   npm run install-all
+   ```
 
-   # Install client dependencies
+3. **Configure environment (optional)**
+   ```bash
+   # .env file is created automatically from .env.example
+   nano .env
+   ```
+
+4. **Build and start**
+   ```bash
+   # Build frontend
+   npm run build
+   
+   # Start server
+   npm start
+   ```
+
+5. **Access the application**
+   - Frontend: http://localhost:3000 (development)
+   - Production: http://localhost:5000
+
+## On-Chain Verification
+
+All blockchain operations are externally verifiable!
+
+```bash
+# Verify a transaction
+GET /api/verification/verify-transaction/:chain/:txHash
+
+# Get verifiable balance
+GET /api/verification/balance/:chain/:address
+
+# Verify smart contract
+GET /api/verification/contract/:chain/:address
+```
+
+See [VERIFICATION_EXAMPLES.md](VERIFICATION_EXAMPLES.md) for complete documentation.
+
+## Deployment Options
+
+| Method | Use Case | Command |
+|--------|----------|---------|
+| Quick Start | Testing/Development | `./quick-start.sh` |
+| PM2 | Production | `pm2 start ecosystem.config.js` |
+| Docker | Containerized | `docker-compose up -d` |
+| Systemd | Linux Service | `sudo systemctl start assets-in-control` |
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed instructions.
+
+## API Endpoints
+
+### Wallets
+- `GET /api/wallets` - Get all wallets
+- `POST /api/wallets` - Add new wallet
+- `PUT /api/wallets/:id/verify` - Verify wallet
+- `DELETE /api/wallets/:id` - Delete wallet
+
+### Verification ⭐ NEW
+- `GET /api/verification/verify-transaction/:chain/:txHash` - Verify transaction
+- `GET /api/verification/balance/:chain/:address` - Get verifiable balance
+- `GET /api/verification/contract/:chain/:address` - Verify contract
+- `GET /api/verification/history/:chain/:address` - Get transaction history
+- `GET /api/verification/explorers` - List supported explorers
+
+### Staking
    cd client
    npm install
    cd ..

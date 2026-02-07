@@ -6,17 +6,31 @@ const db = new sqlite3.Database(dbPath);
 
 const initDatabase = () => {
   db.serialize(() => {
+    // Users table
+    db.run(`
+      CREATE TABLE IF NOT EXISTS users (
+        id TEXT PRIMARY KEY,
+        email TEXT NOT NULL UNIQUE,
+        password TEXT NOT NULL,
+        name TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        last_login DATETIME
+      )
+    `);
+
     // Wallets table
     db.run(`
       CREATE TABLE IF NOT EXISTS wallets (
         id TEXT PRIMARY KEY,
+        user_id TEXT,
         name TEXT NOT NULL,
-        address TEXT NOT NULL UNIQUE,
+        address TEXT NOT NULL,
         type TEXT NOT NULL,
         balance REAL DEFAULT 0,
         verified INTEGER DEFAULT 0,
         location TEXT,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id)
       )
     `);
 
@@ -41,12 +55,14 @@ const initDatabase = () => {
       CREATE TABLE IF NOT EXISTS transactions (
         id TEXT PRIMARY KEY,
         wallet_id TEXT NOT NULL,
+        user_id TEXT,
         type TEXT NOT NULL,
         cryptocurrency TEXT NOT NULL,
         amount REAL NOT NULL,
         status TEXT DEFAULT 'pending',
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (wallet_id) REFERENCES wallets(id)
+        FOREIGN KEY (wallet_id) REFERENCES wallets(id),
+        FOREIGN KEY (user_id) REFERENCES users(id)
       )
     `);
 
@@ -72,7 +88,10 @@ const initDatabase = () => {
   });
 };
 
+const get = () => db;
+
 module.exports = {
   db,
+  get,
   initDatabase
 };

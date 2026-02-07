@@ -376,5 +376,6 @@ module.exports = {
   verifySignature,
   isValidAddress,
   clearCache,
-  switchToNextProvider
+  switchToNextProvider,
+  getProvider  // Export for verification routes
 };
