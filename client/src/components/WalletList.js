@@ -5,6 +5,7 @@ function WalletList({ onWalletSelect, refreshTrigger }) {
   const [wallets, setWallets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [refreshingId, setRefreshingId] = useState(null);
 
   useEffect(() => {
     loadWallets();
@@ -20,6 +21,39 @@ function WalletList({ onWalletSelect, refreshTrigger }) {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleRefreshBalance = async (id) => {
+    setRefreshingId(id);
+    try {
+      await walletAPI.refreshBalance(id);
+      loadWallets();
+      showSuccess('Balance refreshed from blockchain! 🔄✨');
+    } catch (err) {
+      alert('Failed to refresh balance: ' + (err.response?.data?.error || err.message));
+    } finally {
+      setRefreshingId(null);
+    }
+  };
+
+  const showSuccess = (message) => {
+    const toast = document.createElement('div');
+    toast.textContent = message;
+    toast.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+      color: white;
+      padding: 16px 24px;
+      border-radius: 12px;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+      z-index: 10000;
+      animation: slideInRight 0.5s ease-out, fadeOut 0.5s ease-in 2.5s forwards;
+      font-weight: 600;
+    `;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
   };
 
   const handleVerify = async (id) => {
@@ -87,6 +121,16 @@ function WalletList({ onWalletSelect, refreshTrigger }) {
             </span>
           </div>
           <div style={{ marginTop: '15px' }}>
+            <button 
+              className="button" 
+              onClick={() => handleRefreshBalance(wallet.id)}
+              disabled={refreshingId === wallet.id}
+              style={{ 
+                background: refreshingId === wallet.id ? '#9ca3af' : 'linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%)'
+              }}
+            >
+              {refreshingId === wallet.id ? '⏳ Refreshing...' : '🔄 Refresh Balance'}
+            </button>
             {!wallet.verified && (
               <button 
                 className="button success" 

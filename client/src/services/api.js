@@ -14,7 +14,8 @@ export const walletAPI = {
   getAll: () => api.get('/wallets'),
   getById: (id) => api.get(`/wallets/${id}`),
   create: (wallet) => api.post('/wallets', wallet),
-  verify: (id) => api.put(`/wallets/${id}/verify`),
+  verify: (id, signature) => api.put(`/wallets/${id}/verify`, signature),
+  refreshBalance: (id) => api.put(`/wallets/${id}/refresh`),
   updateBalance: (id, balance) => api.put(`/wallets/${id}/balance`, { balance }),
   delete: (id) => api.delete(`/wallets/${id}`),
 };
