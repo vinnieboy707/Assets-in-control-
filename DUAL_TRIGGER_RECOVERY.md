@@ -1,12 +1,16 @@
-# Dual Trigger Error Recovery System
+# Dual Trigger Error Recovery System with Automatic Advancement
 
 ## Overview
 
-The **Dual Trigger Error Recovery System** is an intelligent, automatic error recovery mechanism that detects failures, applies recovery strategies, validates the fix, and escalates through multiple strategies until success or manual intervention is required.
+The **Dual Trigger Error Recovery System** is an intelligent, automatic error recovery mechanism that:
+1. Detects failures, applies recovery strategies, and validates the fix
+2. Uses DIFFERENT strategies for each attempt (never repeating failed approaches)
+3. **Automatically advances to the next validation upon success**
+4. Escalates through multiple strategies until success or manual intervention
 
 ## How It Works
 
-### The Dual Trigger Flow
+### The Dual Trigger Flow with Automatic Advancement
 
 ```
 Error Occurs
@@ -17,22 +21,44 @@ Apply Strategy #1 (Primary)
     ↓
 Re-run Validation
     ↓
-Success? → Continue ✅
+Success? → ✅ AUTOMATICALLY ADVANCE TO NEXT VALIDATION
     ↓ No
 Apply Strategy #2 (Secondary - DIFFERENT from #1)
     ↓
 Re-run Validation
     ↓
-Success? → Continue ✅
+Success? → ✅ AUTOMATICALLY ADVANCE TO NEXT VALIDATION
     ↓ No
 Apply Strategy #3 (if available)
     ↓
 Re-run Validation
     ↓
-Success? → Continue ✅
+Success? → ✅ AUTOMATICALLY ADVANCE TO NEXT VALIDATION
     ↓ No
 Flag for Manual Intervention 🚨
 ```
+
+### Validation Chain with Auto-Advancement
+
+```
+Validation 1
+    ↓ Pass
+Auto-Advance ➡️
+    ↓
+Validation 2
+    ↓ Pass
+Auto-Advance ➡️
+    ↓
+Validation 3
+    ↓ Pass
+Complete ✅
+```
+
+**Key Features:**
+- ✅ After successful recovery, **automatically proceeds** to next validation
+- ✅ Context data flows through the entire chain
+- ✅ Optional validations can be skipped without stopping the chain
+- ✅ Each validation can have success/failure callbacks
 
 ### Key Principle: Different Strategies
 
@@ -119,6 +145,71 @@ input = input.trim().replace(/[<>]/g, '')
 ```
 
 ## Usage
+
+### Using Validation Chains (Recommended)
+
+The best way to use the recovery system is through **Validation Chains**, which automatically advance through multiple checks:
+
+```javascript
+const { ValidationChain } = require('./validationChain');
+
+// Create a chain
+const chain = new ValidationChain('Wallet Creation');
+
+chain
+  .addValidation({
+    name: 'Validate Address Format',
+    validate: async (ctx) => {
+      // Your validation logic
+      if (isValidAddress(ctx.address)) {
+        return { success: true };
+      }
+      return { success: false, error: new Error('Invalid address') };
+    },
+    onSuccess: (ctx) => {
+      console.log('✅ Address validated, auto-advancing...');
+    }
+  })
+  .addValidation({
+    name: 'Fetch Balance',
+    validate: async (ctx) => {
+      const balance = await fetchBalance(ctx.address);
+      ctx.balance = balance;
+      return { success: true, context: ctx };
+    },
+    onSuccess: (ctx) => {
+      console.log('✅ Balance fetched, auto-advancing...');
+    }
+  })
+  .addValidation({
+    name: 'Save to Database',
+    validate: async (ctx) => {
+      await saveWallet(ctx);
+      return { success: true };
+    },
+    onSuccess: () => {
+      console.log('✅ Wallet saved!');
+    }
+  });
+
+// Execute the chain - automatically advances through all validations
+const result = await chain.execute({ address: '0x123...', type: 'ethereum' });
+
+if (result.success) {
+  console.log('All validations passed!');
+  console.log(`Completed ${result.completedValidations}/${result.totalValidations}`);
+}
+```
+
+**What happens:**
+1. ✅ Address validates → **Auto-advances** to balance fetch
+2. ✅ Balance fetched → **Auto-advances** to database save
+3. ✅ Database saved → Chain completes
+
+**If any step fails:**
+1. ⚠️ Validation fails → Recovery Strategy #1 applied
+2. ↻ Re-validates → Still fails? → Recovery Strategy #2 (DIFFERENT)
+3. ↻ Re-validates → Success? → **Auto-advances** to next validation
 
 ### In Route Handlers
 
@@ -462,6 +553,84 @@ curl -X POST http://localhost:5000/api/wallets \
    - Track escalation rate
    - Add strategies for common failures
 
+## Validation Chain Features
+
+### Optional vs Required Validations
+
+```javascript
+chain
+  .addValidation({
+    name: 'Optional Email Validation',
+    required: false, // Won't stop chain if it fails
+    validate: async (ctx) => {
+      return { success: await validateEmail(ctx.email) };
+    }
+  })
+  .addValidation({
+    name: 'Critical Security Check',
+    required: true, // Will stop chain if it fails
+    validate: async (ctx) => {
+      return { success: await securityCheck(ctx) };
+    }
+  });
+```
+
+### Context Flow
+
+Context data automatically flows through the entire chain:
+
+```javascript
+const result = await chain.execute({ 
+  userId: '123', 
+  action: 'transfer' 
+});
+
+// Each validation can read and modify context
+// Final result.context contains all accumulated data
+console.log(result.context); // { userId: '123', action: 'transfer', balance: 100, ... }
+```
+
+### Success and Failure Callbacks
+
+```javascript
+chain.addValidation({
+  name: 'Process Payment',
+  validate: async (ctx) => {
+    // validation logic
+  },
+  onSuccess: (ctx) => {
+    console.log(`Payment processed: $${ctx.amount}`);
+    sendEmail(ctx.email, 'Payment successful');
+  },
+  onFailure: (ctx, error) => {
+    console.error(`Payment failed: ${error.message}`);
+    logToMonitoring(error);
+  }
+});
+```
+
+### Pre-built Chains
+
+Use ready-made chains for common operations:
+
+```javascript
+const { walletCreationChain, transactionChain } = require('./validationChain');
+
+// Wallet creation with auto-advancement
+const result = await walletCreationChain({
+  address: '0x123...',
+  type: 'ethereum',
+  name: 'My Wallet'
+});
+
+// Transaction processing with auto-advancement
+const txResult = await transactionChain({
+  walletId: 'abc123',
+  amount: 100,
+  balance: 500
+});
+```
+
 ## Future Enhancements
 
 - [ ] Machine learning for strategy selection
@@ -472,6 +641,9 @@ curl -X POST http://localhost:5000/api/wallets \
 - [ ] A/B testing for strategies
 - [ ] User notification system
 - [ ] Recovery time SLA tracking
+- [x] Validation chains with auto-advancement ✅
+- [x] Context flow through validations ✅
+- [x] Optional vs required validations ✅
 
 ## Support
 
@@ -480,6 +652,7 @@ For issues with the recovery system:
 2. Review console output for recovery attempts
 3. Verify strategies are registered correctly
 4. Check validation functions return proper format
+5. Test validation chains with test suite
 
 ## License
 
