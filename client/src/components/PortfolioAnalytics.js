@@ -23,14 +23,19 @@ function PortfolioAnalytics({ wallets, stakingData }) {
       // Calculate portfolio holdings
       const holdings = {};
       
+      // Wallet type to crypto symbol mapping
+      const walletTypeToCrypto = {
+        'ethereum': 'ETH',
+        'bitcoin': 'BTC',
+        'binance': 'BNB',
+        'polygon': 'MATIC',
+        'solana': 'SOL',
+        'cardano': 'ADA'
+      };
+      
       // Add wallet balances
       wallets.forEach(wallet => {
-        const symbol = wallet.type === 'ethereum' ? 'ETH' :
-                      wallet.type === 'bitcoin' ? 'BTC' :
-                      wallet.type === 'binance' ? 'BNB' :
-                      wallet.type === 'polygon' ? 'MATIC' :
-                      wallet.type === 'solana' ? 'SOL' :
-                      wallet.type === 'cardano' ? 'ADA' : 'ETH';
+        const symbol = walletTypeToCrypto[wallet.type] || 'ETH';
         
         if (!holdings[symbol]) {
           holdings[symbol] = { symbol, amount: 0 };

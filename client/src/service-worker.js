@@ -7,10 +7,10 @@
 // service worker, and the Workbox build step will be skipped.
 
 import { clientsClaim } from 'workbox-core';
-import { ExpiringCacheEntry } from 'workbox-expiration';
 import { precacheAndRoute, createHandlerBoundToURL } from 'workbox-precaching';
 import { registerRoute } from 'workbox-routing';
 import { StaleWhileRevalidate, CacheFirst, NetworkFirst } from 'workbox-strategies';
+import { ExpirationPlugin } from 'workbox-expiration';
 
 clientsClaim();
 
@@ -60,10 +60,10 @@ registerRoute(
   new CacheFirst({
     cacheName: 'images',
     plugins: [
-      {
+      new ExpirationPlugin({
         maxEntries: 60,
         maxAgeSeconds: 30 * 24 * 60 * 60, // 30 Days
-      },
+      }),
     ],
   })
 );

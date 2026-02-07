@@ -25,7 +25,7 @@ const CRYPTO_ID_MAP = {
   'AAVE': 'aave',
   'COMP': 'compound-governance-token',
   'MKR': 'maker',
-  'SNX': 'havven'
+  'SNX': 'synthetix-network-token'
 };
 
 /**

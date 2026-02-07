@@ -187,7 +187,12 @@ function SearchFilter({ onFilterChange, filterType = 'transactions' }) {
               {searchTerm && (
                 <span className="filter-tag">
                   Search: "{searchTerm}"
-                  <button onClick={() => handleSearchChange({ target: { value: '' } })}>×</button>
+                  <button 
+                    onClick={() => handleSearchChange({ target: { value: '' } })}
+                    aria-label="Remove search filter"
+                  >
+                    ×
+                  </button>
                 </span>
               )}
               {Object.entries(filters).map(([key, value]) => {
@@ -195,7 +200,12 @@ function SearchFilter({ onFilterChange, filterType = 'transactions' }) {
                   return (
                     <span key={key} className="filter-tag">
                       {key}: {value}
-                      <button onClick={() => handleFilterChange(key, '')}>×</button>
+                      <button 
+                        onClick={() => handleFilterChange(key, '')}
+                        aria-label={`Remove ${key} filter`}
+                      >
+                        ×
+                      </button>
                     </span>
                   );
                 }

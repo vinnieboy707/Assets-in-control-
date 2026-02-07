@@ -46,18 +46,29 @@ router.get('/transactions/csv', optionalAuth, async (req, res) => {
       });
     });
 
-    // Convert to CSV
+    // Helper function to escape CSV values (RFC 4180)
+    const escapeCSV = (value) => {
+      if (value === null || value === undefined) return '';
+      const str = String(value);
+      // If contains comma, quote, or newline, wrap in quotes and escape quotes
+      if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+        return `"${str.replace(/"/g, '""')}"`;
+      }
+      return str;
+    };
+
+    // Convert to CSV with proper escaping
     const headers = ['ID', 'Wallet ID', 'Type', 'Cryptocurrency', 'Amount', 'Status', 'Date'];
     const csv = [
       headers.join(','),
       ...transactions.map(tx => [
-        tx.id,
-        tx.wallet_id,
-        tx.type,
-        tx.cryptocurrency,
-        tx.amount,
-        tx.status,
-        tx.created_at
+        escapeCSV(tx.id),
+        escapeCSV(tx.wallet_id),
+        escapeCSV(tx.type),
+        escapeCSV(tx.cryptocurrency),
+        escapeCSV(tx.amount),
+        escapeCSV(tx.status),
+        escapeCSV(tx.created_at)
       ].join(','))
     ].join('\n');
 

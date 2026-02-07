@@ -1,8 +1,16 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
+
+// Validate JWT_SECRET is set in production
+if (process.env.NODE_ENV === 'production' && !JWT_SECRET) {
+  throw new Error('JWT_SECRET must be set in production environment');
+}
+
+// Use a default only in development
+const SECRET = JWT_SECRET || 'dev-secret-key-only-for-local-testing';
 
 /**
  * Generate JWT token
@@ -10,7 +18,7 @@ const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
 function generateToken(userId, email) {
   return jwt.sign(
     { userId, email },
-    JWT_SECRET,
+    SECRET,
     { expiresIn: JWT_EXPIRES_IN }
   );
 }
@@ -20,7 +28,7 @@ function generateToken(userId, email) {
  */
 function verifyToken(token) {
   try {
-    return jwt.verify(token, JWT_SECRET);
+    return jwt.verify(token, SECRET);
   } catch (error) {
     return null;
   }
