@@ -3,7 +3,7 @@ const router = express.Router();
 const db = require('../database');
 const auth = require('../auth');
 const { v4: uuidv4 } = require('uuid');
-const { authLimiter } = require('../rateLimiter');
+const { authLimiter, apiLimiter } = require('../rateLimiter');
 
 /**
  * Register new user
@@ -141,7 +141,7 @@ router.post('/login', authLimiter, async (req, res) => {
 /**
  * Get current user
  */
-router.get('/me', auth.authenticateToken, async (req, res) => {
+router.get('/me', apiLimiter, auth.authenticateToken, async (req, res) => {
   try {
     const user = await new Promise((resolve, reject) => {
       db.get().get(
@@ -168,7 +168,7 @@ router.get('/me', auth.authenticateToken, async (req, res) => {
 /**
  * Update user profile
  */
-router.put('/profile', auth.authenticateToken, async (req, res) => {
+router.put('/profile', apiLimiter, auth.authenticateToken, async (req, res) => {
   try {
     const { name } = req.body;
 
