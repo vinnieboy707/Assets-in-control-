@@ -1,27 +1,42 @@
 const { ethers } = require('ethers');
+const { withRecoveryAsync } = require('./recoveryMiddleware');
 
 /**
  * Blockchain Service - Production-grade on-chain interaction
  * Handles real wallet balance queries, transaction verification, and blockchain state
+ * Now with automatic error recovery!
  */
 
-// RPC Provider Configuration
+// RPC Provider Configuration with fallbacks
 const RPC_ENDPOINTS = {
-  ethereum: process.env.ETHEREUM_RPC_URL || 'https://cloudflare-eth.com',
-  polygon: process.env.POLYGON_RPC_URL || 'https://polygon-rpc.com',
-  binance: process.env.BSC_RPC_URL || 'https://bsc-dataseed.binance.org',
-  solana: process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com',
+  ethereum: [
+    process.env.ETHEREUM_RPC_URL || 'https://cloudflare-eth.com',
+    'https://rpc.ankr.com/eth',
+    'https://eth.llamarpc.com'
+  ],
+  polygon: [
+    process.env.POLYGON_RPC_URL || 'https://polygon-rpc.com',
+    'https://rpc.ankr.com/polygon'
+  ],
+  binance: [
+    process.env.BSC_RPC_URL || 'https://bsc-dataseed.binance.org',
+    'https://rpc.ankr.com/bsc'
+  ],
+  solana: [
+    process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com'
+  ],
 };
 
 // Provider instances cache
 const providers = {};
+let currentProviderIndex = {}; // Track which provider we're using
 
 // Balance cache to reduce RPC calls
 const balanceCache = new Map();
 const CACHE_TTL = parseInt(process.env.BALANCE_CACHE_TTL) || 60000; // 60 seconds default
 
 /**
- * Get or create provider for a blockchain
+ * Get or create provider for a blockchain with automatic fallback
  * @param {string} chain - Chain identifier
  * @returns {ethers.Provider} Ethers provider
  */
@@ -29,11 +44,15 @@ function getProvider(chain) {
   const chainLower = chain.toLowerCase();
   
   if (!providers[chainLower]) {
-    const rpcUrl = RPC_ENDPOINTS[chainLower];
+    const rpcUrls = RPC_ENDPOINTS[chainLower];
     
-    if (!rpcUrl) {
+    if (!rpcUrls || rpcUrls.length === 0) {
       throw new Error(`Unsupported chain: ${chain}`);
     }
+    
+    // Initialize with first provider
+    currentProviderIndex[chainLower] = 0;
+    const rpcUrl = Array.isArray(rpcUrls) ? rpcUrls[0] : rpcUrls;
     
     try {
       providers[chainLower] = new ethers.JsonRpcProvider(rpcUrl);
@@ -47,12 +66,63 @@ function getProvider(chain) {
 }
 
 /**
- * Get native token balance for an address
+ * Switch to next available RPC provider for a chain
+ */
+function switchToNextProvider(chain) {
+  const chainLower = chain.toLowerCase();
+  const rpcUrls = RPC_ENDPOINTS[chainLower];
+  
+  if (!Array.isArray(rpcUrls) || rpcUrls.length <= 1) {
+    return false; // No alternatives available
+  }
+  
+  const currentIndex = currentProviderIndex[chainLower] || 0;
+  const nextIndex = (currentIndex + 1) % rpcUrls.length;
+  
+  console.log(`Switching ${chain} provider from ${rpcUrls[currentIndex]} to ${rpcUrls[nextIndex]}`);
+  
+  currentProviderIndex[chainLower] = nextIndex;
+  providers[chainLower] = new ethers.JsonRpcProvider(rpcUrls[nextIndex]);
+  
+  return true;
+}
+
+/**
+ * Get native token balance for an address with automatic recovery
  * @param {string} address - Wallet address
  * @param {string} chain - Blockchain (ethereum, polygon, binance)
  * @returns {Promise<number>} Balance in native token
  */
 async function getNativeBalance(address, chain) {
+  const context = { address, chain, currentProvider: null };
+  
+  // Validation function to verify the balance fetch worked
+  const validationFn = async (ctx) => {
+    try {
+      const balance = await _getNativeBalanceInternal(ctx.address, ctx.chain);
+      return { success: true, balance };
+    } catch (error) {
+      return { success: false, error };
+    }
+  };
+  
+  const result = await withRecoveryAsync(
+    async (ctx) => _getNativeBalanceInternal(ctx.address, ctx.chain),
+    context,
+    validationFn
+  );
+  
+  if (result.success) {
+    return result.result;
+  } else {
+    throw new Error(result.error || 'Failed to fetch balance after recovery attempts');
+  }
+}
+
+/**
+ * Internal balance fetching function
+ */
+async function _getNativeBalanceInternal(address, chain) {
   // Check cache first
   const cacheKey = `${chain}:${address}`;
   const cached = balanceCache.get(cacheKey);
@@ -305,5 +375,6 @@ module.exports = {
   getGasPrice,
   verifySignature,
   isValidAddress,
-  clearCache
+  clearCache,
+  switchToNextProvider
 };
