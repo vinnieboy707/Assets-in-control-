@@ -45,13 +45,22 @@ router.post('/', async (req, res) => {
   try {
     // Fetch REAL balance from blockchain
     let balance = 0;
+    let balanceNote = 'Balance will be fetched on next refresh';
     
     // For EVM-compatible chains (Ethereum, Polygon, BSC)
     if (['ethereum', 'polygon', 'binance'].includes(type.toLowerCase())) {
-      balance = await blockchain.getNativeBalance(address, type);
+      try {
+        balance = await blockchain.getNativeBalance(address, type);
+        balanceNote = 'Real on-chain balance fetched successfully';
+      } catch (error) {
+        // If RPC fails (network issues, rate limit, etc.), start with 0
+        // User can refresh manually later
+        console.error(`RPC error fetching balance: ${error.message}`);
+        balance = 0;
+        balanceNote = 'Balance fetch failed - use Refresh button to retry';
+      }
     } else {
       // For other chains, start with 0 and user can refresh manually
-      // This avoids blocking wallet creation if chain is not yet supported
       console.log(`Balance fetch not yet implemented for ${type}, starting with 0`);
       balance = 0;
     }
@@ -64,17 +73,30 @@ router.post('/', async (req, res) => {
           return res.status(500).json({ error: err.message });
         }
         res.status(201).json({
-          message: 'Wallet added successfully with real on-chain balance',
-          wallet: { id, name, address, type, balance, verified: 0, location: location || null }
+          message: 'Wallet added successfully',
+          note: balanceNote,
+          wallet: { id, name, address, type, balance, verified: 0, location: location || null },
+          isRealBalance: balance > 0
         });
       }
     );
   } catch (error) {
-    console.error('Error fetching blockchain balance:', error);
-    return res.status(500).json({ 
-      error: 'Failed to fetch balance from blockchain',
-      details: error.message 
-    });
+    console.error('Error in wallet creation:', error);
+    // Still create the wallet even if balance fetch fails
+    db.run(
+      'INSERT INTO wallets (id, name, address, type, balance, verified, location) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [id, name, address, type, 0, 0, location || null],
+      function(err) {
+        if (err) {
+          return res.status(500).json({ error: err.message });
+        }
+        res.status(201).json({
+          message: 'Wallet added successfully (balance fetch failed - use Refresh button)',
+          wallet: { id, name, address, type, balance: 0, verified: 0, location: location || null },
+          isRealBalance: false
+        });
+      }
+    );
   }
 });
 
