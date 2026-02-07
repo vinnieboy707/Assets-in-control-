@@ -15,6 +15,7 @@ const initDatabase = () => {
         type TEXT NOT NULL,
         balance REAL DEFAULT 0,
         verified INTEGER DEFAULT 0,
+        location TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )
     `);
@@ -27,8 +28,10 @@ const initDatabase = () => {
         cryptocurrency TEXT NOT NULL,
         amount REAL NOT NULL,
         staked_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        unstake_deadline DATETIME,
         apy REAL DEFAULT 0,
         status TEXT DEFAULT 'active',
+        lock_period_days INTEGER DEFAULT 0,
         FOREIGN KEY (wallet_id) REFERENCES wallets(id)
       )
     `);
@@ -41,6 +44,24 @@ const initDatabase = () => {
         type TEXT NOT NULL,
         cryptocurrency TEXT NOT NULL,
         amount REAL NOT NULL,
+        status TEXT DEFAULT 'pending',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (wallet_id) REFERENCES wallets(id)
+      )
+    `);
+
+    // Airdrops table
+    db.run(`
+      CREATE TABLE IF NOT EXISTS airdrops (
+        id TEXT PRIMARY KEY,
+        wallet_id TEXT NOT NULL,
+        name TEXT NOT NULL,
+        cryptocurrency TEXT NOT NULL,
+        amount REAL DEFAULT 0,
+        eligibility_criteria TEXT,
+        claim_deadline DATETIME,
+        claimed INTEGER DEFAULT 0,
+        claimed_at DATETIME,
         status TEXT DEFAULT 'pending',
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (wallet_id) REFERENCES wallets(id)

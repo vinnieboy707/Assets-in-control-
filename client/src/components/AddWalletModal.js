@@ -5,7 +5,8 @@ function AddWalletModal({ onClose, onWalletAdded }) {
   const [formData, setFormData] = useState({
     name: '',
     address: '',
-    type: 'ethereum'
+    type: 'ethereum',
+    location: ''
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -36,7 +37,7 @@ function AddWalletModal({ onClose, onWalletAdded }) {
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
-        <h2>Add New Wallet</h2>
+        <h2>💰 Add New Wallet</h2>
         {error && <div className="error">{error}</div>}
         
         <form onSubmit={handleSubmit}>
@@ -47,7 +48,7 @@ function AddWalletModal({ onClose, onWalletAdded }) {
               name="name"
               value={formData.name}
               onChange={handleChange}
-              placeholder="My Crypto Wallet"
+              placeholder="My Awesome Crypto Wallet"
               required
             />
           </div>
@@ -67,13 +68,24 @@ function AddWalletModal({ onClose, onWalletAdded }) {
           <div className="input-group">
             <label>Wallet Type</label>
             <select name="type" value={formData.type} onChange={handleChange}>
-              <option value="ethereum">Ethereum</option>
-              <option value="bitcoin">Bitcoin</option>
-              <option value="binance">Binance Smart Chain</option>
-              <option value="polygon">Polygon</option>
-              <option value="solana">Solana</option>
-              <option value="cardano">Cardano</option>
+              <option value="ethereum">🔷 Ethereum</option>
+              <option value="bitcoin">₿ Bitcoin</option>
+              <option value="binance">🟡 Binance Smart Chain</option>
+              <option value="polygon">🟣 Polygon</option>
+              <option value="solana">🌊 Solana</option>
+              <option value="cardano">🔵 Cardano</option>
             </select>
+          </div>
+
+          <div className="input-group">
+            <label>Location / Exchange (Optional)</label>
+            <input
+              type="text"
+              name="location"
+              value={formData.location}
+              onChange={handleChange}
+              placeholder="e.g., Coinbase, Binance, MetaMask, Ledger"
+            />
           </div>
 
           <div className="modal-actions">
@@ -81,7 +93,7 @@ function AddWalletModal({ onClose, onWalletAdded }) {
               Cancel
             </button>
             <button type="submit" className="button" disabled={loading}>
-              {loading ? 'Adding...' : 'Add Wallet'}
+              {loading ? 'Adding... ⏳' : 'Add Wallet 🚀'}
             </button>
           </div>
         </form>

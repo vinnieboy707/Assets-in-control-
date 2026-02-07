@@ -27,8 +27,9 @@ router.get('/:id', (req, res) => {
 });
 
 // Add new wallet
+// Add new wallet
 router.post('/', (req, res) => {
-  const { name, address, type } = req.body;
+  const { name, address, type, location } = req.body;
   
   if (!name || !address || !type) {
     return res.status(400).json({ error: 'Name, address, and type are required' });
@@ -38,15 +39,15 @@ router.post('/', (req, res) => {
   const balance = Math.random() * 10000; // Simulated balance for demo
   
   db.run(
-    'INSERT INTO wallets (id, name, address, type, balance, verified) VALUES (?, ?, ?, ?, ?, ?)',
-    [id, name, address, type, balance, 0],
+    'INSERT INTO wallets (id, name, address, type, balance, verified, location) VALUES (?, ?, ?, ?, ?, ?, ?)',
+    [id, name, address, type, balance, 0, location || null],
     function(err) {
       if (err) {
         return res.status(500).json({ error: err.message });
       }
       res.status(201).json({
         message: 'Wallet added successfully',
-        wallet: { id, name, address, type, balance, verified: 0 }
+        wallet: { id, name, address, type, balance, verified: 0, location: location || null }
       });
     }
   );

@@ -26,6 +26,7 @@ export const stakingAPI = {
   getSummary: () => api.get('/staking/summary'),
   stake: (data) => api.post('/staking', data),
   unstake: (id) => api.put(`/staking/${id}/unstake`),
+  updateDeadline: (id, deadline) => api.put(`/staking/${id}/deadline`, { unstake_deadline: deadline }),
   delete: (id) => api.delete(`/staking/${id}`),
 };
 
@@ -37,6 +38,17 @@ export const transactionAPI = {
   trade: (data) => api.post('/transactions/trade', data),
   deposit: (data) => api.post('/transactions/deposit', data),
   updateStatus: (id, status) => api.put(`/transactions/${id}/status`, { status }),
+};
+
+// Airdrop API
+export const airdropAPI = {
+  getAll: () => api.get('/airdrops'),
+  getByWallet: (walletId) => api.get(`/airdrops/wallet/${walletId}`),
+  getUpcoming: () => api.get('/airdrops/upcoming'),
+  create: (data) => api.post('/airdrops', data),
+  claim: (id, amount) => api.put(`/airdrops/${id}/claim`, { amount }),
+  update: (id, data) => api.put(`/airdrops/${id}`, data),
+  delete: (id) => api.delete(`/airdrops/${id}`),
 };
 
 export default api;

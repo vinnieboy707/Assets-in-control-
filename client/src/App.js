@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import './styles/App.css';
+import './styles/ModernTheme.css';
 import WalletList from './components/WalletList';
 import AddWalletModal from './components/AddWalletModal';
-import StakingDashboard from './components/StakingDashboard';
+import EnhancedStakingDashboard from './components/EnhancedStakingDashboard';
 import TransactionsPanel from './components/TransactionsPanel';
+import AirdropsPanel from './components/AirdropsPanel';
 
 function App() {
   const [showAddWallet, setShowAddWallet] = useState(false);
@@ -24,7 +25,7 @@ function App() {
       <div className="header">
         <div className="container">
           <h1>Assets in Control</h1>
-          <p>Manage all your cryptocurrency wallets and staked assets in one place</p>
+          <p>Manage all your cryptocurrency wallets and staked assets in one awesome place ✨</p>
         </div>
       </div>
 
@@ -34,28 +35,34 @@ function App() {
             className={`tab ${activeTab === 'wallets' ? 'active' : ''}`}
             onClick={() => setActiveTab('wallets')}
           >
-            Wallets
+            💰 Wallets
           </button>
           <button 
             className={`tab ${activeTab === 'staking' ? 'active' : ''}`}
             onClick={() => setActiveTab('staking')}
           >
-            Staking Dashboard
+            🏦 Staking
+          </button>
+          <button 
+            className={`tab ${activeTab === 'airdrops' ? 'active' : ''}`}
+            onClick={() => setActiveTab('airdrops')}
+          >
+            🎁 Airdrops
           </button>
           <button 
             className={`tab ${activeTab === 'transactions' ? 'active' : ''}`}
             onClick={() => setActiveTab('transactions')}
           >
-            Transactions
+            💸 Transactions
           </button>
         </div>
 
         {activeTab === 'wallets' && (
           <div>
-            <div className="card">
-              <h2>Your Wallets</h2>
+            <div className="card" style={{'--index': 0}}>
+              <h2>💼 Your Wallets</h2>
               <button className="button" onClick={() => setShowAddWallet(true)}>
-                + Add New Wallet
+                + Add New Wallet 🚀
               </button>
             </div>
             <WalletList 
@@ -65,7 +72,9 @@ function App() {
           </div>
         )}
 
-        {activeTab === 'staking' && <StakingDashboard />}
+        {activeTab === 'staking' && <EnhancedStakingDashboard />}
+        
+        {activeTab === 'airdrops' && <AirdropsPanel />}
         
         {activeTab === 'transactions' && <TransactionsPanel />}
 

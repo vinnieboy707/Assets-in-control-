@@ -9,7 +9,9 @@ function TransactionsPanel() {
   const [formData, setFormData] = useState({
     wallet_id: '',
     cryptocurrency: '',
-    amount: ''
+    amount: '',
+    apy: '5.0',
+    lock_period_days: '30'
   });
 
   useEffect(() => {
@@ -45,16 +47,46 @@ function TransactionsPanel() {
       } else if (transactionType === 'deposit') {
         await transactionAPI.deposit(formData);
       } else if (transactionType === 'stake') {
-        await stakingAPI.stake({ ...formData, apy: 5.0 });
+        await stakingAPI.stake({ 
+          ...formData, 
+          apy: parseFloat(formData.apy),
+          lock_period_days: parseInt(formData.lock_period_days)
+        });
       }
       
       setShowModal(false);
-      setFormData({ wallet_id: '', cryptocurrency: '', amount: '' });
+      setFormData({ 
+        wallet_id: '', 
+        cryptocurrency: '', 
+        amount: '',
+        apy: '5.0',
+        lock_period_days: '30'
+      });
       loadData();
-      alert('Transaction submitted successfully!');
+      showCelebration('Transaction submitted successfully! 🎉');
     } catch (err) {
       alert('Transaction failed: ' + (err.response?.data?.error || err.message));
     }
+  };
+
+  const showCelebration = (message) => {
+    const toast = document.createElement('div');
+    toast.textContent = message;
+    toast.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+      color: white;
+      padding: 16px 24px;
+      border-radius: 12px;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+      z-index: 10000;
+      animation: slideInRight 0.5s ease-out, fadeOut 0.5s ease-in 2.5s forwards;
+      font-weight: 600;
+    `;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
   };
 
   const handleChange = (e) => {
@@ -66,8 +98,8 @@ function TransactionsPanel() {
 
   return (
     <div>
-      <div className="card">
-        <h2>Quick Actions</h2>
+      <div className="card" style={{'--index': 0}}>
+        <h2>⚡ Quick Actions</h2>
         <div>
           <button className="button" onClick={() => handleOpenModal('stake')}>
             Stake Assets
@@ -176,12 +208,47 @@ function TransactionsPanel() {
                 />
               </div>
 
+              {transactionType === 'stake' && (
+                <>
+                  <div className="input-group">
+                    <label>APY (%) 📈</label>
+                    <input
+                      type="number"
+                      name="apy"
+                      value={formData.apy}
+                      onChange={handleChange}
+                      placeholder="5.0"
+                      step="0.1"
+                      min="0"
+                      max="100"
+                    />
+                  </div>
+
+                  <div className="input-group">
+                    <label>Lock Period (days) 🔒</label>
+                    <select
+                      name="lock_period_days"
+                      value={formData.lock_period_days}
+                      onChange={handleChange}
+                    >
+                      <option value="7">7 days ⚡</option>
+                      <option value="14">14 days</option>
+                      <option value="30">30 days 🎯</option>
+                      <option value="60">60 days</option>
+                      <option value="90">90 days 💎</option>
+                      <option value="180">180 days</option>
+                      <option value="365">1 year 🏆</option>
+                    </select>
+                  </div>
+                </>
+              )}
+
               <div className="modal-actions">
                 <button type="button" className="button secondary" onClick={() => setShowModal(false)}>
                   Cancel
                 </button>
                 <button type="submit" className="button">
-                  Submit
+                  Submit 🚀
                 </button>
               </div>
             </form>

@@ -53,22 +53,34 @@ function WalletList({ onWalletSelect, refreshTrigger }) {
   if (wallets.length === 0) {
     return (
       <div className="empty-state">
-        <h3>No wallets connected yet</h3>
-        <p>Add your first wallet to get started</p>
+        <h3>No wallets connected yet 🤷</h3>
+        <p>Add your first wallet to get started! 🚀</p>
       </div>
     );
   }
 
   return (
     <div className="wallet-list">
-      {wallets.map((wallet) => (
-        <div key={wallet.id} className="wallet-card">
+      {wallets.map((wallet, index) => (
+        <div key={wallet.id} className="wallet-card" style={{'--index': index}}>
           <h3>{wallet.name}</h3>
           <div className="balance">${wallet.balance.toFixed(2)}</div>
           <div className="address">{wallet.address}</div>
+          {wallet.location && (
+            <div style={{ 
+              marginTop: '8px', 
+              fontSize: '0.9rem',
+              color: 'var(--text-secondary)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}>
+              📍 {wallet.location}
+            </div>
+          )}
           <div style={{ marginTop: '10px' }}>
             <span className={`badge ${wallet.verified ? 'verified' : 'unverified'}`}>
-              {wallet.verified ? 'Verified' : 'Unverified'}
+              {wallet.verified ? '✓ Verified' : '⚠ Unverified'}
             </span>
             <span className="badge" style={{ background: '#e0e7ff', color: '#667eea' }}>
               {wallet.type}
@@ -80,20 +92,20 @@ function WalletList({ onWalletSelect, refreshTrigger }) {
                 className="button success" 
                 onClick={() => handleVerify(wallet.id)}
               >
-                Verify
+                Verify ✓
               </button>
             )}
             <button 
               className="button secondary" 
               onClick={() => onWalletSelect(wallet)}
             >
-              Manage
+              Manage ⚙️
             </button>
             <button 
               className="button danger" 
               onClick={() => handleDelete(wallet.id)}
             >
-              Delete
+              Delete 🗑️
             </button>
           </div>
         </div>

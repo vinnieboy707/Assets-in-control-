@@ -23,10 +23,12 @@ db.initDatabase();
 const walletRoutes = require('./routes/wallets');
 const stakingRoutes = require('./routes/staking');
 const transactionRoutes = require('./routes/transactions');
+const airdropRoutes = require('./routes/airdrops');
 
 app.use('/api/wallets', walletRoutes);
 app.use('/api/staking', stakingRoutes);
 app.use('/api/transactions', transactionRoutes);
+app.use('/api/airdrops', airdropRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
