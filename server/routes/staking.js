@@ -99,15 +99,25 @@ router.put('/:id/unstake', (req, res) => {
       // Create a transaction record for the unstaking
       const transactionId = uuidv4();
       db.get('SELECT * FROM staked_assets WHERE id = ?', [req.params.id], (err, asset) => {
-        if (!err && asset) {
-          db.run(
-            'INSERT INTO transactions (id, wallet_id, type, cryptocurrency, amount, status) VALUES (?, ?, ?, ?, ?, ?)',
-            [transactionId, asset.wallet_id, 'unstake', asset.cryptocurrency, asset.amount, 'completed']
-          );
+        if (err) {
+          return res.status(500).json({ error: 'Failed to fetch asset details' });
         }
+        if (!asset) {
+          return res.status(404).json({ error: 'Staked asset not found' });
+        }
+        
+        db.run(
+          'INSERT INTO transactions (id, wallet_id, type, cryptocurrency, amount, status) VALUES (?, ?, ?, ?, ?, ?)',
+          [transactionId, asset.wallet_id, 'unstake', asset.cryptocurrency, asset.amount, 'completed'],
+          function(err) {
+            if (err) {
+              return res.status(500).json({ error: 'Failed to create transaction record' });
+            }
+            
+            res.json({ message: 'Asset unstaked successfully' });
+          }
+        );
       });
-      
-      res.json({ message: 'Asset unstaked successfully' });
     }
   );
 });

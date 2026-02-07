@@ -46,26 +46,44 @@ router.post('/withdraw', (req, res) => {
 
   const id = uuidv4();
   
-  db.run(
-    'INSERT INTO transactions (id, wallet_id, type, cryptocurrency, amount, status) VALUES (?, ?, ?, ?, ?, ?)',
-    [id, wallet_id, 'withdraw', cryptocurrency, amount, 'pending'],
-    function(err) {
-      if (err) {
-        return res.status(500).json({ error: err.message });
-      }
-      
-      // Update wallet balance
-      db.run(
-        'UPDATE wallets SET balance = balance - ? WHERE id = ?',
-        [amount, wallet_id]
-      );
-      
-      res.status(201).json({
-        message: 'Withdrawal initiated successfully',
-        transaction: { id, wallet_id, type: 'withdraw', cryptocurrency, amount, status: 'pending' }
-      });
+  // First check if wallet has sufficient balance
+  db.get('SELECT balance FROM wallets WHERE id = ?', [wallet_id], (err, wallet) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
     }
-  );
+    if (!wallet) {
+      return res.status(404).json({ error: 'Wallet not found' });
+    }
+    if (wallet.balance < amount) {
+      return res.status(400).json({ error: 'Insufficient balance' });
+    }
+    
+    db.run(
+      'INSERT INTO transactions (id, wallet_id, type, cryptocurrency, amount, status) VALUES (?, ?, ?, ?, ?, ?)',
+      [id, wallet_id, 'withdraw', cryptocurrency, amount, 'pending'],
+      function(err) {
+        if (err) {
+          return res.status(500).json({ error: err.message });
+        }
+        
+        // Update wallet balance
+        db.run(
+          'UPDATE wallets SET balance = balance - ? WHERE id = ?',
+          [amount, wallet_id],
+          function(err) {
+            if (err) {
+              return res.status(500).json({ error: 'Failed to update balance' });
+            }
+            
+            res.status(201).json({
+              message: 'Withdrawal initiated successfully',
+              transaction: { id, wallet_id, type: 'withdraw', cryptocurrency, amount, status: 'pending' }
+            });
+          }
+        );
+      }
+    );
+  });
 });
 
 // Create trade transaction
@@ -118,13 +136,18 @@ router.post('/deposit', (req, res) => {
       // Update wallet balance
       db.run(
         'UPDATE wallets SET balance = balance + ? WHERE id = ?',
-        [amount, wallet_id]
+        [amount, wallet_id],
+        function(err) {
+          if (err) {
+            return res.status(500).json({ error: 'Failed to update balance' });
+          }
+          
+          res.status(201).json({
+            message: 'Deposit initiated successfully',
+            transaction: { id, wallet_id, type: 'deposit', cryptocurrency, amount, status: 'pending' }
+          });
+        }
       );
-      
-      res.status(201).json({
-        message: 'Deposit initiated successfully',
-        transaction: { id, wallet_id, type: 'deposit', cryptocurrency, amount, status: 'pending' }
-      });
     }
   );
 });

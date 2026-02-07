@@ -2,6 +2,8 @@
 
 A full-stack cryptocurrency wallet management application that allows you to connect all your different wallets, manage staked cryptocurrencies, and perform transactions like withdrawals, trades, and deposits - all from a unified dashboard.
 
+![Wallet View](https://github.com/user-attachments/assets/25fa1db6-14da-425d-9ff3-14bb88a3d6ca)
+
 ## Features
 
 ✅ **Wallet Management**
@@ -10,6 +12,8 @@ A full-stack cryptocurrency wallet management application that allows you to con
 - Verify wallet connections
 - View wallet balances in real-time
 
+![Add Wallet Modal](https://github.com/user-attachments/assets/07485129-8f85-45ac-8e54-cc65432ab352)
+
 ✅ **Staking Dashboard**
 - View all staked assets across all wallets
 - See total staked amounts by cryptocurrency
@@ -17,12 +21,16 @@ A full-stack cryptocurrency wallet management application that allows you to con
 - Unstake assets with a single click
 - Summary view of total staked value
 
+![Staking Dashboard](https://github.com/user-attachments/assets/8e9908b7-e9bd-43f7-9e37-28f9e0310f99)
+
 ✅ **Transaction Management**
 - Stake cryptocurrency
 - Withdraw funds
 - Trade crypto for cash
 - Deposit to external accounts
 - View transaction history with status tracking
+
+![Transactions View](https://github.com/user-attachments/assets/5181208b-9fee-4c72-8e60-3d8b495ed8f7)
 
 ✅ **Unified Dashboard**
 - Clean, modern interface
