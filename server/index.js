@@ -1,11 +1,11 @@
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const dotenv = require('dotenv');
 const path = require('path');
 
 // Load environment variables
-dotenv.config();
+// Keys come from the one shared secrets file (see server/loadEnv.js).
+require('./loadEnv').loadEnv({ project: 'assets' });
 
 const app = express();
 const PORT = process.env.PORT || 5000;
